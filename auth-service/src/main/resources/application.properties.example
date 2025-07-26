@@ -1,0 +1,3 @@
+spring.application.name=pet
+spring.docker.compose.enabled=false
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
