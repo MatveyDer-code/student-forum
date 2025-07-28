@@ -1,4 +1,3 @@
-package io.student.pet.DTO;
+package io.student.pet.dto;
 
-public interface UserResponse {
-}
+public record UserResponse(Long id, String username, String email, String role) {}

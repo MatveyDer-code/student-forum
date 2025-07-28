@@ -10,7 +10,7 @@ import lombok.ToString;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor // нужен Hibernate
+@NoArgsConstructor
 @ToString(exclude = "role")
 public class User {
     @Id
