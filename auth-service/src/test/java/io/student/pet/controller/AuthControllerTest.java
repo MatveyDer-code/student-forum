@@ -19,13 +19,15 @@ class AuthControllerTest {
 
     @MockitoBean
     AuthService authService;
+
 //    @Test
 //    void getExistingUserShouldReturnOk() {
 //        User user = new User();
+//        user.setId(1L);
 //        user.setUsername("alice");
 //        user.setEmail("alice@example.com");
 //
-//        when(authService.getUserById())
+//        when(authService.getUserById(1L))
 //        assertThat(mvcTester.get().uri("/user/{userId}", ))
 //    }
 }

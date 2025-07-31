@@ -1,11 +1,11 @@
 package io.student.pet.service;
 
 import io.student.pet.exception.RoleNotFoundException;
+import io.student.pet.exception.UserNotFoundException;
 import io.student.pet.model.Role;
 import io.student.pet.model.User;
 import io.student.pet.repository.RoleRepository;
 import io.student.pet.repository.UserRepository;
-import io.student.pet.service.AuthService;
 import io.student.pet.dto.UserRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +37,7 @@ class AuthServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         existingUser = new User("alice", "encodedPass", "alice@example.com", new Role("STUDENT"));
+        existingUser.setId(1L);
     }
 
     @Test
@@ -77,12 +78,36 @@ class AuthServiceTest {
     }
 
     @Test
-    void shouldReturnUserWhenUserExists() {
+    void shouldReturnUserByNameAndByIdWhenUserExists() {
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
 
-        User user = authService.findByUsername("alice");
+        User userByName = authService.findByUsername("alice");
 
-        assertNotNull(user);
-        assertEquals("alice", user.getUsername());
+        assertNotNull(userByName);
+        assertEquals("alice", userByName.getUsername());
+
+        User userById = authService.getUserById(1L);
+        assertNotNull(userById);
+        assertEquals(1L, userById.getId());
+    }
+
+    @Test
+    void shouldThrowUserNotFoundWhenUserNotExistOrNoSuchId() {
+        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+        when(userRepository.findById(9999L)).thenReturn(Optional.empty());
+
+
+        RuntimeException nameException = assertThrows(UserNotFoundException.class, () -> {
+            authService.findByUsername("unknown");
+        });
+
+        assertEquals("User with username 'unknown' not found", nameException.getMessage());
+
+        RuntimeException idException = assertThrows(UserNotFoundException.class, () -> {
+            authService.getUserById(9999L);
+        });
+
+        assertEquals("User with id 9999 not found", idException.getMessage());
     }
 }
