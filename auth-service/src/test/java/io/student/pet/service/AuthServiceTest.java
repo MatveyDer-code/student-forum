@@ -1,5 +1,6 @@
 package io.student.pet.service;
 
+import io.student.pet.exception.RoleNotFoundException;
 import io.student.pet.model.Role;
 import io.student.pet.model.User;
 import io.student.pet.repository.RoleRepository;
@@ -15,8 +16,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -31,9 +31,12 @@ class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
+    User existingUser;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        existingUser = new User("alice", "encodedPass", "alice@example.com", new Role("STUDENT"));
     }
 
     @Test
@@ -66,10 +69,20 @@ class AuthServiceTest {
 
         when(roleRepository.findByName(studentRole.getName())).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        RuntimeException exception = assertThrows(RoleNotFoundException.class, () -> {
             authService.register(request);
         });
 
         assertEquals("Role not found", exception.getMessage());
+    }
+
+    @Test
+    void shouldReturnUserWhenUserExists() {
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
+
+        User user = authService.findByUsername("alice");
+
+        assertNotNull(user);
+        assertEquals("alice", user.getUsername());
     }
 }
