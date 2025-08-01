@@ -1,5 +1,6 @@
 package io.student.pet.controller;
 
+import io.student.pet.dto.UserRequest;
 import io.student.pet.model.User;
 import io.student.pet.service.AuthService;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,44 @@ class AuthControllerTest {
         when(authService.getUserById(1L)).thenReturn(user);
         assertThat(mvcTester.get().uri("/user/{userId}", user.getId())
                 .accept(MediaType.APPLICATION_JSON))
-                .hasStatus(HttpStatus.OK);
+                .hasStatus(HttpStatus.OK)
+                .hasContentType(MediaType.APPLICATION_JSON)
+                .bodyJson().satisfies(jsonContent -> {
+                    jsonContent.assertThat().extractingPath("$.id").isEqualTo(1);
+                    jsonContent.assertThat().extractingPath("$.username").isEqualTo("alice");
+                    jsonContent.assertThat().extractingPath("$.email").isEqualTo("alice@example.com");
+                });
+    }
+
+    @Test
+    void registerUserShouldReturnCreated() {
+        UserRequest request = new UserRequest("newUser", "StrongP@ss1", "new@example.com", "STUDENT");
+
+        User savedUser = new User();
+        savedUser.setId(50L);
+        savedUser.setUsername("newUser");
+        savedUser.setEmail("new@example.com");
+
+        when(authService.register(request)).thenReturn(savedUser);
+
+        assertThat(mvcTester.post().uri("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                {
+                    "username": "newUser",
+                    "password": "StrongP@ss1",
+                    "email": "new@example.com",
+                    "role": "STUDENT"
+                }
+            """)
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatus(HttpStatus.CREATED)
+                .hasHeader("Location", "http://localhost/user/50")
+                .hasContentType(MediaType.APPLICATION_JSON)
+                .bodyJson().satisfies(json -> {
+                    json.assertThat().extractingPath("$.id").isEqualTo(50);
+                    json.assertThat().extractingPath("$.username").isEqualTo("newUser");
+                    json.assertThat().extractingPath("$.email").isEqualTo("new@example.com");
+                });
     }
 }
