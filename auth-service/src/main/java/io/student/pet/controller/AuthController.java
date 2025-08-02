@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 
@@ -29,9 +28,9 @@ public class AuthController {
     @PostMapping(value = "/register")
     public ResponseEntity<User> register(@RequestBody @Valid UserRequest request,
                                          HttpServletRequest servletRequest) {
-        User crearedUser = authService.register(request);
+        User createdUser = authService.register(request);
         String baseUrl = servletRequest.getRequestURL().toString().replace(servletRequest.getRequestURI(), "");
-        URI location = URI.create(baseUrl + "/user/" + crearedUser.getId());
-        return ResponseEntity.created(location).body(crearedUser);
+        URI location = URI.create(baseUrl + "/user/" + createdUser.getId());
+        return ResponseEntity.created(location).body(createdUser);
     }
 }

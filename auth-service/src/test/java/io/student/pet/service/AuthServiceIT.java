@@ -5,7 +5,6 @@ import io.student.pet.model.Role;
 import io.student.pet.model.User;
 import io.student.pet.repository.RoleRepository;
 import io.student.pet.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
