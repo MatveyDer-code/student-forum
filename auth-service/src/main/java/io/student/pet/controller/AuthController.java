@@ -1,5 +1,6 @@
 package io.student.pet.controller;
 
+import io.student.pet.dto.LoginRequest;
 import io.student.pet.dto.UserRequest;
 import io.student.pet.model.User;
 import io.student.pet.service.AuthService;
@@ -22,6 +23,12 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(user);
+    }
+
+    @PostMapping(value = "/login")
+    public ResponseEntity<User> login(@RequestBody @Valid LoginRequest request) {
+        User user = authService.login(request.username(), request.password());
         return ResponseEntity.ok(user);
     }
 

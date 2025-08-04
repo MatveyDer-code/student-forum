@@ -27,6 +27,33 @@ class AuthControllerTest {
     AuthService authService;
 
     @Test
+    void loginUserShouldReturnOk() {
+        User loggedInUser = new User();
+        loggedInUser.setId(99L);
+        loggedInUser.setUsername("alice");
+        loggedInUser.setEmail("alice@example.com");
+
+        when(authService.login("alice", "StrongP@ss1")).thenReturn(loggedInUser);
+
+        assertThat(mvcTester.post().uri("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "username": "alice",
+                        "password": "StrongP@ss1"
+                    }
+                """)
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatus(HttpStatus.OK)
+                .hasContentType(MediaType.APPLICATION_JSON)
+                .bodyJson().satisfies(json -> {
+                    json.assertThat().extractingPath("$.id").isEqualTo(99);
+                    json.assertThat().extractingPath("$.username").isEqualTo("alice");
+                    json.assertThat().extractingPath("$.email").isEqualTo("alice@example.com");
+                });
+    }
+
+    @Test
     void getExistingUserShouldReturnOk() {
         User user = new User();
         user.setId(1L);
