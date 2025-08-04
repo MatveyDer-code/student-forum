@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
@@ -37,7 +38,9 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        existingUser = new User("alice", "encodedPass", "alice@example.com", new Role("STUDENT"));
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String hashedPassword = encoder.encode("StrongP@ss1");
+        existingUser = new User("alice", hashedPassword, "alice@example.com", new Role("STUDENT"));
         existingUser.setId(1L);
     }
 

@@ -64,4 +64,46 @@ public class AuthControllerIT {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).contains("integrationUser");
     }
+
+    @Test
+    void shouldLoginUserSuccessfully() {
+        String url = getBaseUrl() + "/login";
+
+        String json = """
+        {
+            "username": "alice",
+            "password": "password1"
+        }
+    """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(json, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("alice");
+    }
+
+    @Test
+    void shouldReturnUnauthorizedForInvalidCredentials() {
+        String url = getBaseUrl() + "/login";
+
+        String json = """
+        {
+            "username": "integrationUser",
+            "password": "WrongPassword!"
+        }
+    """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(json, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getBody()).contains("Invalid username or password");
+    }
 }
