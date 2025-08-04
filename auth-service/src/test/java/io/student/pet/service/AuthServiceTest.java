@@ -1,5 +1,6 @@
 package io.student.pet.service;
 
+import io.student.pet.exception.AuthenticationException;
 import io.student.pet.exception.RoleNotFoundException;
 import io.student.pet.exception.UserNotFoundException;
 import io.student.pet.model.Role;
@@ -18,7 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
 
@@ -45,7 +46,7 @@ class AuthServiceTest {
         Role studentRole = new Role();
         studentRole.setName("STUDENT");
 
-        UserRequest request = new UserRequest("alice", "pass123", "alice@example.com", studentRole.getName());
+        UserRequest request = new UserRequest("alice", "StrongP@ss1", "alice@example.com", studentRole.getName());
 
         when(roleRepository.findByName("STUDENT")).thenReturn(Optional.of(studentRole));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
@@ -66,7 +67,7 @@ class AuthServiceTest {
         Role studentRole = new Role();
         studentRole.setName("NO ROLE");
 
-        UserRequest request = new UserRequest("alice", "pass123", "alice@example.com", studentRole.getName());
+        UserRequest request = new UserRequest("alice", "StrongP@ss1", "alice@example.com", studentRole.getName());
 
         when(roleRepository.findByName(studentRole.getName())).thenReturn(Optional.empty());
 
@@ -109,5 +110,30 @@ class AuthServiceTest {
         });
 
         assertEquals("User with id 9999 not found", idException.getMessage());
+    }
+
+    @Test
+    void loginShouldReturnUserWhenCredentialsValid() {
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
+
+        User result = authService.login("alice", "StrongP@ss1");
+
+        assertNotNull(result);
+        assertEquals("alice", result.getUsername());
+        verify(userRepository, times(1)).findByUsername("alice");
+    }
+
+    @Test
+    void loginShouldThrowUserNotFoundExceptionWhenUserDoesNotExist() {
+        when(userRepository.findByUsername("bob")).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> authService.login("bob", "anyPass"));
+    }
+
+    @Test
+    void loginShouldThrowAuthenticationExceptionWhenPasswordInvalid() {
+        when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
+
+        assertThrows(AuthenticationException.class, () -> authService.login("alice", "wrongPass"));
     }
 }
