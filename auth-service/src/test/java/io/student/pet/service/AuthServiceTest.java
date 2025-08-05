@@ -30,10 +30,13 @@ class AuthServiceTest {
     @Mock
     private RoleRepository roleRepository;
 
+    @Mock
+    private JwtProvider jwtProvider;
+
     @InjectMocks
     private AuthService authService;
 
-    User existingUser;
+    private User existingUser;
 
     @BeforeEach
     void setUp() {
@@ -138,5 +141,16 @@ class AuthServiceTest {
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
 
         assertThrows(AuthenticationException.class, () -> authService.login("alice", "wrongPass"));
+    }
+
+    @Test
+    void loginShouldReturnJwtTokenWhenCredentialsAreValid() {
+        when(userRepository.findByUsername("alice")).thenReturn(java.util.Optional.of(existingUser));
+        when(jwtProvider.generateToken(existingUser)).thenReturn("dummy-jwt-token");
+
+        String token = authService.loginAndGetToken("alice", "StrongP@ss1");
+
+        assertNotNull(token);
+        assertEquals("dummy-jwt-token", token);
     }
 }

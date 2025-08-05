@@ -14,13 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final JwtProvider jwtProvider;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public User register(UserRequest request) {
@@ -61,5 +60,10 @@ public class AuthService {
         return userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("User with id " + id + " not found")
         );
+    }
+
+    public String loginAndGetToken(String username, String password) {
+        User user = login(username, password); // ✅ переиспользуем существующую проверку
+        return jwtProvider.generateToken(user); // 🔹 позже добавим JwtProvider
     }
 }
