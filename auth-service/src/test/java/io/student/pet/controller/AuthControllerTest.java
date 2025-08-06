@@ -28,28 +28,23 @@ class AuthControllerTest {
 
     @Test
     void loginUserShouldReturnOk() {
-        User loggedInUser = new User();
-        loggedInUser.setId(99L);
-        loggedInUser.setUsername("alice");
-        loggedInUser.setEmail("alice@example.com");
+        String token = "dummy-jwt-token";
 
-        when(authService.login("alice", "StrongP@ss1")).thenReturn(loggedInUser);
+        when(authService.login("alice", "StrongP@ss1")).thenReturn(token);
 
         assertThat(mvcTester.post().uri("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                    {
-                        "username": "alice",
-                        "password": "StrongP@ss1"
-                    }
-                """)
+                {
+                    "username": "alice",
+                    "password": "StrongP@ss1"
+                }
+            """)
                 .accept(MediaType.APPLICATION_JSON))
                 .hasStatus(HttpStatus.OK)
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson().satisfies(json -> {
-                    json.assertThat().extractingPath("$.id").isEqualTo(99);
-                    json.assertThat().extractingPath("$.username").isEqualTo("alice");
-                    json.assertThat().extractingPath("$.email").isEqualTo("alice@example.com");
+                    json.assertThat().extractingPath("$.token").isEqualTo(token);
                 });
     }
 

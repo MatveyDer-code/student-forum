@@ -39,7 +39,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public User login(String username, String rawPassword) {
+    public String login(String username, String rawPassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User with username '" + username + "' not found"));
 
@@ -47,7 +47,7 @@ public class AuthService {
             throw new AuthenticationException();
         }
 
-        return user;
+        return jwtProvider.generateToken(user);
     }
 
     public User findByUsername(String username) {
@@ -60,10 +60,5 @@ public class AuthService {
         return userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("User with id " + id + " not found")
         );
-    }
-
-    public String loginAndGetToken(String username, String password) {
-        User user = login(username, password); // ✅ переиспользуем существующую проверку
-        return jwtProvider.generateToken(user); // 🔹 позже добавим JwtProvider
     }
 }

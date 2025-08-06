@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -26,10 +27,10 @@ public class AuthController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping(value = "/login")
-    public ResponseEntity<User> login(@RequestBody @Valid LoginRequest request) {
-        User user = authService.login(request.username(), request.password());
-        return ResponseEntity.ok(user);
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
+        String token = authService.login(request.username(), request.password());
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     @PostMapping(value = "/register")

@@ -119,14 +119,16 @@ class AuthServiceTest {
     }
 
     @Test
-    void loginShouldReturnUserWhenCredentialsValid() {
+    void loginShouldReturnJwtTokenWhenCredentialsValid() {
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
+        when(jwtProvider.generateToken(existingUser)).thenReturn("dummy-jwt-token");
 
-        User result = authService.login("alice", "StrongP@ss1");
+        String token = authService.login("alice", "StrongP@ss1");
 
-        assertNotNull(result);
-        assertEquals("alice", result.getUsername());
+        assertNotNull(token);
+        assertEquals("dummy-jwt-token", token);
         verify(userRepository, times(1)).findByUsername("alice");
+        verify(jwtProvider, times(1)).generateToken(existingUser);
     }
 
     @Test
@@ -141,16 +143,5 @@ class AuthServiceTest {
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
 
         assertThrows(AuthenticationException.class, () -> authService.login("alice", "wrongPass"));
-    }
-
-    @Test
-    void loginShouldReturnJwtTokenWhenCredentialsAreValid() {
-        when(userRepository.findByUsername("alice")).thenReturn(java.util.Optional.of(existingUser));
-        when(jwtProvider.generateToken(existingUser)).thenReturn("dummy-jwt-token");
-
-        String token = authService.loginAndGetToken("alice", "StrongP@ss1");
-
-        assertNotNull(token);
-        assertEquals("dummy-jwt-token", token);
     }
 }
