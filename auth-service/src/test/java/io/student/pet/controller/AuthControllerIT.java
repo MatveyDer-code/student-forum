@@ -8,6 +8,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -16,6 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+        "jwt.secret=verySecretKeyForJwtGeneration1234567890",
+        "jwt.expiration=3600000"
+})
 public class AuthControllerIT {
 
     @Container
@@ -83,7 +88,7 @@ public class AuthControllerIT {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("alice");
+        assertThat(response.getBody()).contains("token");
     }
 
     @Test
