@@ -1,5 +1,6 @@
 package io.student.pet.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -47,5 +48,15 @@ public class JwtProvider {
         catch (JwtException | IllegalArgumentException exception) {
             throw new InvalidJwtTokenException("JWT token is invalid or expired", exception);
         }
+    }
+
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getSubject();
     }
 }

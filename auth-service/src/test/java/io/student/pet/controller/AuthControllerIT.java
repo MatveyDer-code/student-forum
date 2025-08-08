@@ -1,5 +1,8 @@
 package io.student.pet.controller;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +15,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,7 +76,7 @@ public class AuthControllerIT {
     }
 
     @Test
-    void shouldLoginUserSuccessfully() {
+    void shouldAccessProtectedEndpointWithValidToken() {
         String url = getBaseUrl() + "/login";
 
         String json = """
@@ -89,6 +94,25 @@ public class AuthControllerIT {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("token");
+
+        String token = response.getBody()
+                .replace("{\"token\":\"", "")
+                .replace("\"}", "");
+
+        String protectedUrl = getBaseUrl() + "/user/1";
+
+        headers.setBearerAuth(token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> protectedResponse = restTemplate.exchange(
+                protectedUrl,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        assertThat(protectedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(protectedResponse.getBody()).contains("alice");
     }
 
     @Test
@@ -97,7 +121,7 @@ public class AuthControllerIT {
 
         String json = """
         {
-            "username": "integrationUser",
+            "username": "alice",
             "password": "WrongPassword!"
         }
     """;
@@ -110,5 +134,66 @@ public class AuthControllerIT {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).contains("Invalid username or password");
+    }
+
+    @Test
+    void shouldReturnUnauthorizedForInvalidJwtToken() {
+        String protectedUrl = getBaseUrl() + "/user/1";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("invalid.jwt.token.here");
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                protectedUrl,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void shouldReturnUnauthorizedForExpiredJwtToken() {
+        String url = getBaseUrl() + "/login";
+
+        String json = """
+        {
+            "username": "alice",
+            "password": "password1"
+        }
+    """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(json, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("token");
+
+        String secret = "verySecretKeyForJwtGeneration1234567890";
+
+        String expiredToken = Jwts.builder()
+                .setSubject("alice")
+                .setIssuedAt(new Date(System.currentTimeMillis() - 3600_000))
+                .setExpiration(new Date(System.currentTimeMillis() - 1000))
+                .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
+                .compact();
+
+        String protectedUrl = getBaseUrl() + "/user/1";
+        headers.setBearerAuth(expiredToken);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> protectedResponse = restTemplate.exchange(
+                protectedUrl,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        assertThat(protectedResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }
