@@ -25,12 +25,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleRoleNotFound(UserNotFoundException ex) {
+    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<String> handleAuthenticationException(AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidJwtTokenException.class)
+    public ResponseEntity<String> handleInvalidJwtToken(InvalidJwtTokenException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 

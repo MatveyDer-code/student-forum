@@ -1,8 +1,10 @@
 package io.student.pet.service;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.student.pet.exception.InvalidJwtTokenException;
 import io.student.pet.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,5 +34,18 @@ public class JwtProvider {
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        }
+        catch (JwtException | IllegalArgumentException exception) {
+            throw new InvalidJwtTokenException("JWT token is invalid or expired", exception);
+        }
     }
 }
