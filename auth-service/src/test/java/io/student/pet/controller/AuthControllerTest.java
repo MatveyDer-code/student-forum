@@ -1,5 +1,6 @@
 package io.student.pet.controller;
 
+import io.student.pet.dto.AuthResponse;
 import io.student.pet.dto.UserRequest;
 import io.student.pet.model.User;
 import io.student.pet.service.AuthService;
@@ -28,9 +29,10 @@ class AuthControllerTest {
 
     @Test
     void loginUserShouldReturnOk() {
-        String token = "dummy-jwt-token";
+        String accessToken = "dummy-access-token";
+        String refreshToken = "dummy-refresh-token";
 
-        when(authService.login("alice", "StrongP@ss1")).thenReturn(token);
+        when(authService.login("alice", "StrongP@ss1")).thenReturn(new AuthResponse(accessToken, refreshToken));
 
         assertThat(mvcTester.post().uri("/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -44,7 +46,8 @@ class AuthControllerTest {
                 .hasStatus(HttpStatus.OK)
                 .hasContentType(MediaType.APPLICATION_JSON)
                 .bodyJson().satisfies(json -> {
-                    json.assertThat().extractingPath("$.token").isEqualTo(token);
+                    json.assertThat().extractingPath("$.accessToken").isEqualTo(accessToken);
+                    json.assertThat().extractingPath("$.refreshToken").isEqualTo(refreshToken);
                 });
     }
 

@@ -1,5 +1,6 @@
 package io.student.pet.controller;
 
+import io.student.pet.dto.AuthResponse;
 import io.student.pet.dto.LoginRequest;
 import io.student.pet.dto.UserRequest;
 import io.student.pet.model.User;
@@ -29,8 +30,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
-        String token = authService.login(request.username(), request.password());
-        return ResponseEntity.ok(Map.of("token", token));
+        AuthResponse token = authService.login(request.username(), request.password());
+        return ResponseEntity.ok(Map.of(
+                "accessToken", token.accessToken(),
+                "refreshToken", token.refreshToken())
+        );
     }
 
     @PostMapping(value = "/register")

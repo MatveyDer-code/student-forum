@@ -1,5 +1,6 @@
 package io.student.pet.service;
 
+import io.student.pet.dto.AuthResponse;
 import io.student.pet.dto.UserRequest;
 import io.student.pet.exception.AuthenticationException;
 import io.student.pet.exception.EmailAlreadyExistsException;
@@ -39,7 +40,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public String login(String username, String rawPassword) {
+    public AuthResponse login(String username, String rawPassword) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User with username '" + username + "' not found"));
 
@@ -47,7 +48,7 @@ public class AuthService {
             throw new AuthenticationException();
         }
 
-        return jwtProvider.generateAccessToken(user);
+        return new AuthResponse(jwtProvider.generateAccessToken(user), jwtProvider.generateRefreshToken(user));
     }
 
     public User findByUsername(String username) {

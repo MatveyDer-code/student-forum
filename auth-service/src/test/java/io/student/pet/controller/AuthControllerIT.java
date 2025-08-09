@@ -1,5 +1,8 @@
 package io.student.pet.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -24,9 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
         "jwt.secret=verySecretKeyForJwtGeneration1234567890",
-        "jwt.expiration=3600000"
+        "jwt.access-expiration=3600000",
+        "jwt.refresh-expiration=604800000"
 })
-public class AuthControllerIT {
+class AuthControllerIT {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
@@ -195,5 +199,45 @@ public class AuthControllerIT {
         );
 
         assertThat(protectedResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void shouldRefreshAccessTokenSuccessfully() throws JsonProcessingException {
+        String loginUrl = getBaseUrl() + "/login";
+        String loginJson = """
+                {
+                    "username": "alice",
+                    "password": "password1"
+                }
+        """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> loginRequest = new HttpEntity<>(loginJson, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, loginRequest, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("token");
+        assertThat(response.getBody()).contains("refreshToken");
+
+        String bodyLogin = response.getBody();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(bodyLogin);
+        String refreshToken = jsonNode.get("refreshToke").asText();
+
+        String refreshUrl = getBaseUrl() + "/refresh";
+        String refreshJson = String.format("""
+                {
+                    "refreshToken": "%s"
+                }
+        """, refreshToken);
+
+        HttpEntity<String> refreshRequest = new HttpEntity<>(refreshJson, headers);
+
+        ResponseEntity<String> refreshResponse = restTemplate.postForEntity(refreshUrl, refreshRequest, String.class);
+
+        assertThat(refreshResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(refreshResponse.getBody()).contains("token");
     }
 }

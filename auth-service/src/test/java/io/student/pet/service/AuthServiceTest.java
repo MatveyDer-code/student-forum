@@ -1,5 +1,6 @@
 package io.student.pet.service;
 
+import io.student.pet.dto.AuthResponse;
 import io.student.pet.exception.AuthenticationException;
 import io.student.pet.exception.RoleNotFoundException;
 import io.student.pet.exception.UserNotFoundException;
@@ -122,13 +123,17 @@ class AuthServiceTest {
     void loginShouldReturnJwtTokenWhenCredentialsValid() {
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
         when(jwtProvider.generateAccessToken(existingUser)).thenReturn("dummy-jwt-token");
+        when(jwtProvider.generateRefreshToken(existingUser)).thenReturn("dummy-refresh-token");
 
-        String token = authService.login("alice", "StrongP@ss1");
+        AuthResponse authResponse = authService.login("alice", "StrongP@ss1");
 
-        assertNotNull(token);
-        assertEquals("dummy-jwt-token", token);
+        assertNotNull(authResponse);
+        assertEquals("dummy-jwt-token", authResponse.accessToken());
+        assertEquals("dummy-refresh-token", authResponse.refreshToken());
+
         verify(userRepository, times(1)).findByUsername("alice");
         verify(jwtProvider, times(1)).generateAccessToken(existingUser);
+        verify(jwtProvider, times(1)).generateRefreshToken(existingUser);
     }
 
     @Test
