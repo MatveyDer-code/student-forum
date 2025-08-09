@@ -121,14 +121,14 @@ class AuthServiceTest {
     @Test
     void loginShouldReturnJwtTokenWhenCredentialsValid() {
         when(userRepository.findByUsername("alice")).thenReturn(Optional.of(existingUser));
-        when(jwtProvider.generateToken(existingUser)).thenReturn("dummy-jwt-token");
+        when(jwtProvider.generateAccessToken(existingUser)).thenReturn("dummy-jwt-token");
 
         String token = authService.login("alice", "StrongP@ss1");
 
         assertNotNull(token);
         assertEquals("dummy-jwt-token", token);
         verify(userRepository, times(1)).findByUsername("alice");
-        verify(jwtProvider, times(1)).generateToken(existingUser);
+        verify(jwtProvider, times(1)).generateAccessToken(existingUser);
     }
 
     @Test

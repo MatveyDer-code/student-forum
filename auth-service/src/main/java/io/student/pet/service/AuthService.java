@@ -47,7 +47,7 @@ public class AuthService {
             throw new AuthenticationException();
         }
 
-        return jwtProvider.generateToken(user);
+        return jwtProvider.generateAccessToken(user);
     }
 
     public User findByUsername(String username) {

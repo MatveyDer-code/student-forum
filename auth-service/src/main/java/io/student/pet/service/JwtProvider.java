@@ -17,17 +17,32 @@ import java.util.Date;
 public class JwtProvider {
 
     private final Key key;
-    private final long jwtExpirationMs;
+    private final long accessTokenExpirationMs;
+    private final long refreshTokenExpirationMs;
 
     public JwtProvider(@Value("${jwt.secret}") String secret,
-                       @Value("${jwt.expiration}") long jwtExpirationMs) {
+                       @Value("${jwt.access-expiration}") long accessTokenExpirationMs,
+                       @Value("${jwt.refresh-expiration}") long refreshTokenExpirationMs) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        this.jwtExpirationMs = jwtExpirationMs;
+        this.accessTokenExpirationMs = accessTokenExpirationMs;
+        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
 
-    public String generateToken(User user) {
+    public String generateAccessToken(User user) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
+
+        return Jwts.builder()
+                .setSubject(user.getUsername())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(User user) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpirationMs);
 
         return Jwts.builder()
                 .setSubject(user.getUsername())
