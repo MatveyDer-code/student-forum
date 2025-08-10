@@ -45,4 +45,12 @@ public class AuthController {
         URI location = URI.create(baseUrl + "/user/" + createdUser.getId());
         return ResponseEntity.created(location).body(createdUser);
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        AuthResponse newTokens = authService.refreshAccessToken(refreshToken);
+
+        return ResponseEntity.ok(newTokens);
+    }
 }

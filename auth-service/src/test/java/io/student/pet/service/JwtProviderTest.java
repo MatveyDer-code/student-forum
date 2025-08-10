@@ -39,7 +39,7 @@ class JwtProviderTest {
     }
 
     @Test
-    void validateTokenShouldReturnTrueForValidToken() {
+    void validateAccessTokenShouldReturnTrueForValidToken() {
         User user = new User();
         user.setId(1L);
         user.setEmail("test@mail.ru");
@@ -50,15 +50,15 @@ class JwtProviderTest {
         user.setRole(role);
 
         String token = jwtProvider.generateAccessToken(user);
-        assertThat(jwtProvider.validateToken(token)).isTrue();
+        assertThat(jwtProvider.validateAccessToken(token)).isTrue();
     }
 
     @Test
-    void validateTokenShouldReturnFalseForInvalidToken() {
+    void validateAccessTokenShouldReturnFalseForInvalidToken() {
         String invalidToken = "invalid.token.value";
 
         assertThrows(InvalidJwtTokenException.class, () -> {
-            jwtProvider.validateToken(invalidToken);
+            jwtProvider.validateAccessToken(invalidToken);
         });
     }
 
@@ -77,7 +77,7 @@ class JwtProviderTest {
 
         assertThat(refreshToken).isNotBlank();
         assertThat(refreshToken.split("\\.")).hasSize(3);
-        assertThat(jwtProvider.validateToken(refreshToken)).isTrue();
+        assertThat(jwtProvider.validateRefreshToken(refreshToken)).isTrue();
         String username = jwtProvider.getUsernameFromToken(refreshToken);
         assertThat(username).isEqualTo("testuser");
     }

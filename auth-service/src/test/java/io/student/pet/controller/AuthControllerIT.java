@@ -218,13 +218,13 @@ class AuthControllerIT {
         ResponseEntity<String> response = restTemplate.postForEntity(loginUrl, loginRequest, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("token");
+        assertThat(response.getBody()).contains("accessToken");
         assertThat(response.getBody()).contains("refreshToken");
 
         String bodyLogin = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(bodyLogin);
-        String refreshToken = jsonNode.get("refreshToke").asText();
+        String refreshToken = jsonNode.get("refreshToken").asText();
 
         String refreshUrl = getBaseUrl() + "/refresh";
         String refreshJson = String.format("""
@@ -238,6 +238,6 @@ class AuthControllerIT {
         ResponseEntity<String> refreshResponse = restTemplate.postForEntity(refreshUrl, refreshRequest, String.class);
 
         assertThat(refreshResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(refreshResponse.getBody()).contains("token");
+        assertThat(refreshResponse.getBody()).contains("accessToken");
     }
 }

@@ -62,4 +62,15 @@ public class AuthService {
                 () -> new UserNotFoundException("User with id " + id + " not found")
         );
     }
+
+    public AuthResponse refreshAccessToken(String refreshToken) {
+        if (jwtProvider.validateRefreshToken(refreshToken)) {
+            String username = jwtProvider.getUsernameFromToken(refreshToken);
+            User user = this.findByUsername(username);
+            String newAccessToken = jwtProvider.generateAccessToken(user);
+            return new AuthResponse(newAccessToken, refreshToken);
+        }
+
+        throw new AuthenticationException();
+    }
 }

@@ -149,4 +149,44 @@ class AuthServiceTest {
 
         assertThrows(AuthenticationException.class, () -> authService.login("alice", "wrongPass"));
     }
+
+
+    @Test
+    void refreshAccessToken_shouldReturnNewAccessToken_whenRefreshTokenValid() {
+        String validRefreshToken = "validRefreshToken";
+        String username = "alice";
+        String newAccessToken = "newAccessToken";
+
+        when(jwtProvider.validateRefreshToken(validRefreshToken)).thenReturn(true);
+        when(jwtProvider.getUsernameFromToken(validRefreshToken)).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(existingUser));
+        when(jwtProvider.generateAccessToken(existingUser)).thenReturn(newAccessToken);
+
+        AuthResponse response = authService.refreshAccessToken(validRefreshToken);
+
+        assertNotNull(response);
+        assertEquals(newAccessToken, response.accessToken());
+        assertEquals(validRefreshToken, response.refreshToken());
+
+        verify(jwtProvider).validateRefreshToken(validRefreshToken);
+        verify(jwtProvider).getUsernameFromToken(validRefreshToken);
+        verify(userRepository).findByUsername(username);
+        verify(jwtProvider).generateAccessToken(existingUser);
+    }
+
+
+    @Test
+    void refreshAccessToken_shouldThrowAuthenticationException_whenRefreshTokenInvalid() {
+        String invalidRefreshToken = "invalidRefreshToken";
+
+        when(jwtProvider.validateRefreshToken(invalidRefreshToken)).thenReturn(false);
+
+        assertThrows(AuthenticationException.class, () -> {
+            authService.refreshAccessToken(invalidRefreshToken);
+        });
+
+        verify(jwtProvider).validateRefreshToken(invalidRefreshToken);
+        verifyNoMoreInteractions(jwtProvider);
+        verifyNoInteractions(userRepository);
+    }
 }

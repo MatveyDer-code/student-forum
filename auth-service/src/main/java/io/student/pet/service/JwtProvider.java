@@ -52,16 +52,23 @@ public class JwtProvider {
                 .compact();
     }
 
-    public boolean validateToken(String token) {
+    public boolean validateAccessToken(String token) {
+        return validateToken(token, accessTokenExpirationMs);
+    }
+
+    public boolean validateRefreshToken(String token) {
+        return validateToken(token, refreshTokenExpirationMs);
+    }
+
+    private boolean validateToken(String token, long expirationMs) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
             return true;
-        }
-        catch (JwtException | IllegalArgumentException exception) {
-            throw new InvalidJwtTokenException("JWT token is invalid or expired", exception);
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new InvalidJwtTokenException("JWT token is invalid or expired", ex);
         }
     }
 
