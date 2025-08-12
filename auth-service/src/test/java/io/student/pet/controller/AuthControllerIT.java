@@ -80,7 +80,7 @@ class AuthControllerIT {
     }
 
     @Test
-    void shouldAccessProtectedEndpointWithValidToken() {
+    void shouldAccessProtectedEndpointWithValidToken() throws JsonProcessingException {
         String url = getBaseUrl() + "/login";
 
         String json = """
@@ -97,11 +97,11 @@ class AuthControllerIT {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("token");
+        assertThat(response.getBody()).contains("accessToken");
 
-        String token = response.getBody()
-                .replace("{\"token\":\"", "")
-                .replace("\"}", "");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(response.getBody());
+        String token = root.get("accessToken").asText();
 
         String protectedUrl = getBaseUrl() + "/user/1";
 
@@ -176,7 +176,7 @@ class AuthControllerIT {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("token");
+        assertThat(response.getBody()).contains("accessToken");
 
         String secret = "verySecretKeyForJwtGeneration1234567890";
 

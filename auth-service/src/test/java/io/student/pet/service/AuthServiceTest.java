@@ -152,7 +152,7 @@ class AuthServiceTest {
 
 
     @Test
-    void refreshAccessToken_shouldReturnNewAccessToken_whenRefreshTokenValid() {
+    void refreshAccessTokenShouldReturnNewAccessTokenWhenRefreshTokenValid() {
         String validRefreshToken = "validRefreshToken";
         String username = "alice";
         String newAccessToken = "newAccessToken";
@@ -176,7 +176,7 @@ class AuthServiceTest {
 
 
     @Test
-    void refreshAccessToken_shouldThrowAuthenticationException_whenRefreshTokenInvalid() {
+    void refreshAccessTokenShouldThrowAuthenticationExceptionWhenRefreshTokenInvalid() {
         String invalidRefreshToken = "invalidRefreshToken";
 
         when(jwtProvider.validateRefreshToken(invalidRefreshToken)).thenReturn(false);

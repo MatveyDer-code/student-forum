@@ -3,7 +3,9 @@ package io.student.pet.controller;
 import io.student.pet.dto.AuthResponse;
 import io.student.pet.dto.UserRequest;
 import io.student.pet.model.User;
+import io.student.pet.repository.UserRepository;
 import io.student.pet.service.AuthService;
+import io.student.pet.service.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,8 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
-
+@AutoConfigureMockMvc
 class AuthControllerTest {
 
     @Autowired
@@ -26,6 +27,12 @@ class AuthControllerTest {
 
     @MockitoBean
     AuthService authService;
+
+    @MockitoBean
+    private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Test
     void loginUserShouldReturnOk() {

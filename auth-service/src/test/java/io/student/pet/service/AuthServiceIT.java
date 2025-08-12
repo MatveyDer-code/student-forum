@@ -23,7 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @TestPropertySource(properties = {
         "jwt.secret=verySecretKeyForJwtGeneration1234567890",
-        "jwt.expiration=3600000"
+        "jwt.access-expiration=3600000",
+        "jwt.refresh-expiration=604800000"
 })
 class AuthServiceIT {
 

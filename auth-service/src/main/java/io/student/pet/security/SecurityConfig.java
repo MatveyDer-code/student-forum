@@ -1,5 +1,6 @@
 package io.student.pet.security;
 
+import io.student.pet.repository.UserRepository;
 import io.student.pet.service.JwtProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -21,13 +22,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider);
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           UserRepository userRepository) throws Exception {
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider, userRepository);
 
         http
              .csrf(AbstractHttpConfigurer::disable)
              .authorizeHttpRequests(auth -> auth
                      .requestMatchers("/login", "/register", "/refresh").permitAll()
+                     .requestMatchers("/test/moderator/**").hasRole("MODERATOR")
+                     .requestMatchers("/test/teacher/**").hasRole("TEACHER")
+                     .requestMatchers("/test/student/**").hasRole("STUDENT")
                      .anyRequest().authenticated()
              )
              .exceptionHandling(exception ->
