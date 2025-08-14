@@ -1,6 +1,7 @@
 package io.student.pet.service;
 
 import io.student.pet.dto.UserRequest;
+import io.student.pet.dto.UserResponse;
 import io.student.pet.model.Role;
 import io.student.pet.model.User;
 import io.student.pet.repository.RoleRepository;
@@ -58,8 +59,8 @@ class AuthServiceIT {
                 "alice_" + UUID.randomUUID() + "@example.com",
                 "STUDENT"
         );
-        User saved = authService.register(request);
-        assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getRole().getName()).isEqualTo("STUDENT");
+        UserResponse saved = authService.register(request);
+        assertThat(saved.id()).isNotNull();
+        assertThat(saved.role()).isEqualTo("STUDENT");
     }
 }

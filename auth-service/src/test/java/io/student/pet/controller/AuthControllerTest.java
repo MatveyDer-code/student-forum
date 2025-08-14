@@ -2,6 +2,8 @@ package io.student.pet.controller;
 
 import io.student.pet.dto.AuthResponse;
 import io.student.pet.dto.UserRequest;
+import io.student.pet.dto.UserResponse;
+import io.student.pet.model.Role;
 import io.student.pet.model.User;
 import io.student.pet.repository.UserRepository;
 import io.student.pet.service.AuthService;
@@ -85,8 +87,16 @@ class AuthControllerTest {
         savedUser.setId(50L);
         savedUser.setUsername("newUser");
         savedUser.setEmail("new@example.com");
+        savedUser.setRole(new Role("STIDENT"));
 
-        when(authService.register(request)).thenReturn(savedUser);
+        UserResponse userResponse = new UserResponse(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getRole().getName()
+        );
+
+        when(authService.register(request)).thenReturn(userResponse);
 
         assertThat(mvcTester.post().uri("/register")
                 .contentType(MediaType.APPLICATION_JSON)

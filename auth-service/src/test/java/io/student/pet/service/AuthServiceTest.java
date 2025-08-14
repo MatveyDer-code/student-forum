@@ -1,6 +1,7 @@
 package io.student.pet.service;
 
 import io.student.pet.dto.AuthResponse;
+import io.student.pet.dto.UserResponse;
 import io.student.pet.exception.AuthenticationException;
 import io.student.pet.exception.RoleNotFoundException;
 import io.student.pet.exception.UserNotFoundException;
@@ -62,11 +63,11 @@ class AuthServiceTest {
             return u;
         });
 
-        User result = authService.register(request);
+        UserResponse result = authService.register(request);
 
-        assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getUsername()).isEqualTo("alice");
-        assertThat(result.getRole().getName()).isEqualTo("STUDENT");
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.username()).isEqualTo("alice");
+        assertThat(result.role()).isEqualTo("STUDENT");
     }
 
     @Test

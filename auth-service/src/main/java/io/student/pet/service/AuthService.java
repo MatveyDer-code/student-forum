@@ -2,6 +2,7 @@ package io.student.pet.service;
 
 import io.student.pet.dto.AuthResponse;
 import io.student.pet.dto.UserRequest;
+import io.student.pet.dto.UserResponse;
 import io.student.pet.exception.AuthenticationException;
 import io.student.pet.exception.EmailAlreadyExistsException;
 import io.student.pet.exception.RoleNotFoundException;
@@ -23,7 +24,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public User register(UserRequest request) {
+    public UserResponse register(UserRequest request) {
         if (userRepository.findByUsername(request.username()).isPresent()) {
             throw new UsernameAlreadyExistsException();
         }
@@ -35,9 +36,21 @@ public class AuthService {
         Role role = roleRepository.findByName(request.role())
                 .orElseThrow(RoleNotFoundException::new);
 
-        User user = new User(request.username(), passwordEncoder.encode(request.password()), request.email(), role);
+        User user = new User(
+                request.username(),
+                passwordEncoder.encode(request.password()),
+                request.email(),
+                role
+        );
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return new UserResponse(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getRole().getName()
+        );
     }
 
     public AuthResponse login(String username, String rawPassword) {

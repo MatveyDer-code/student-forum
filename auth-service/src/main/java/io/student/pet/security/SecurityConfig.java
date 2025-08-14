@@ -5,6 +5,7 @@ import io.student.pet.service.JwtProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,25 +24,34 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           UserRepository userRepository) throws Exception {
+                                           UserRepository userRepository,
+                                           org.springframework.core.env.Environment env) throws Exception {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider, userRepository);
 
         http
-             .csrf(AbstractHttpConfigurer::disable)
-             .authorizeHttpRequests(auth -> auth
-                     .requestMatchers("/login", "/register", "/refresh").permitAll()
-                     .requestMatchers("/test/moderator/**").hasRole("MODERATOR")
-                     .requestMatchers("/test/teacher/**").hasRole("TEACHER")
-                     .requestMatchers("/test/student/**").hasRole("STUDENT")
-                     .anyRequest().authenticated()
-             )
-             .exceptionHandling(exception ->
-                     exception.authenticationEntryPoint(
-                             (request, response, authException) ->
-                                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
-                     )
-             )
-             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/login", "/register", "/refresh").permitAll();
+
+                    // Актуатор открыт только в dev
+                    if (env.acceptsProfiles(Profiles.of("dev"))) {
+                        auth.requestMatchers("/actuator/**").permitAll();
+                    } else {
+                        auth.requestMatchers("/actuator/**").hasRole("MODERATOR");
+                    }
+
+                    auth.requestMatchers("/test/moderator/**").hasRole("MODERATOR");
+                    auth.requestMatchers("/test/teacher/**").hasRole("TEACHER");
+                    auth.requestMatchers("/test/student/**").hasRole("STUDENT");
+                    auth.anyRequest().authenticated();
+                })
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(
+                                (request, response, authException) ->
+                                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                        )
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
