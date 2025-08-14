@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.student.pet.dto.UserResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -84,10 +85,10 @@ class AuthControllerIT {
         String url = getBaseUrl() + "/login";
 
         String json = """
-        {
-            "username": "alice",
-            "password": "password1"
-        }
+    {
+        "username": "alice",
+        "password": "password1"
+    }
     """;
 
         HttpHeaders headers = new HttpHeaders();
@@ -95,7 +96,6 @@ class AuthControllerIT {
         HttpEntity<String> request = new HttpEntity<>(json, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("accessToken");
 
@@ -104,7 +104,6 @@ class AuthControllerIT {
         String token = root.get("accessToken").asText();
 
         String protectedUrl = getBaseUrl() + "/user/1";
-
         headers.setBearerAuth(token);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
@@ -116,7 +115,11 @@ class AuthControllerIT {
         );
 
         assertThat(protectedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(protectedResponse.getBody()).contains("alice");
+
+        UserResponse userResponse = mapper.readValue(protectedResponse.getBody(), UserResponse.class);
+        assertThat(userResponse.username()).isEqualTo("alice");
+        assertThat(userResponse.id()).isEqualTo(1);
+        assertThat(userResponse.role()).isEqualTo("STUDENT");
     }
 
     @Test

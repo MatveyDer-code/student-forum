@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.internal.util.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-@Component
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
@@ -30,32 +31,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain chain) throws ServletException, IOException {
         String token = parseJwt(request);
 
-        if (token != null && jwtProvider.validateAccessToken(token)) {
-            String username = jwtProvider.getUsernameFromToken(token);
-            User user = userRepository.findByUsernameWithRole(username).orElseThrow(UserNotFoundException::new);
-            GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getName());
+        if (token != null) {
+            log.debug("JWT token найден: {}", token);
+            if (jwtProvider.validateAccessToken(token)) {
+                String username = jwtProvider.getUsernameFromToken(token);
+                log.debug("JWT валиден. Пользователь: {}", username);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(user, null, List.of(authority));
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                User user = userRepository.findByUsernameWithRole(username)
+                        .orElseThrow(() -> {
+                            log.warn("Пользователь {} не найден в базе", username);
+                            return new UserNotFoundException();
+                        });
 
+                GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().getName());
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(user, null, List.of(authority));
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                log.info("Аутентификация успешна для пользователя: {}", username);
+            } else {
+                log.warn("Невалидный JWT токен");
+            }
+        } else {
+            log.debug("JWT токен не найден в запросе");
         }
 
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 
     private String parseJwt(HttpServletRequest request) {
-        String headerAuth = request.getHeader("Authorization");
-
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
+        String header = request.getHeader("Authorization");
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            return header.substring(7);
         }
-
         return null;
     }
 }

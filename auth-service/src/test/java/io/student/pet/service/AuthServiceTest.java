@@ -96,9 +96,9 @@ class AuthServiceTest {
         assertNotNull(userByName);
         assertEquals("alice", userByName.getUsername());
 
-        User userById = authService.getUserById(1L);
+        UserResponse userById = authService.getUserById(1L);
         assertNotNull(userById);
-        assertEquals(1L, userById.getId());
+        assertEquals(1L, userById.id());
     }
 
     @Test

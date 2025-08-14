@@ -7,12 +7,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import io.student.pet.exception.InvalidJwtTokenException;
 import io.student.pet.model.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 
+@Slf4j
 @Service
 public class JwtProvider {
 
@@ -31,6 +33,7 @@ public class JwtProvider {
     public String generateAccessToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpirationMs);
+        log.info("Генерация access токена для пользователя {}", user.getUsername());
 
         return Jwts.builder()
                 .setSubject(user.getUsername())
@@ -53,11 +56,24 @@ public class JwtProvider {
     }
 
     public boolean validateAccessToken(String token) {
-        return validateToken(token, accessTokenExpirationMs);
-    }
+        try {
+            boolean valid = validateToken(token, accessTokenExpirationMs);
+            log.debug("Access токен валиден: {}", valid);
+            return valid;
+        } catch (InvalidJwtTokenException ex) {
+            log.warn("Ошибка валидации access токена: {}", ex.getMessage());
+            throw ex;
+        }    }
 
     public boolean validateRefreshToken(String token) {
-        return validateToken(token, refreshTokenExpirationMs);
+        try {
+            boolean valid = validateToken(token, refreshTokenExpirationMs);
+            log.debug("Refresh токен валиден: {}", valid);
+            return valid;
+        } catch (InvalidJwtTokenException ex) {
+            log.warn("Ошибка валидации refresh токена: {}", ex.getMessage());
+            throw ex;
+        }
     }
 
     private boolean validateToken(String token, long expirationMs) {

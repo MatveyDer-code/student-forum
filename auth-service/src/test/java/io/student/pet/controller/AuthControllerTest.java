@@ -62,13 +62,16 @@ class AuthControllerTest {
 
     @Test
     void getExistingUserShouldReturnOk() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("alice");
-        user.setEmail("alice@example.com");
+        UserResponse userResponse = new UserResponse(
+                1L,
+                "alice",
+                "alice@example.com",
+                "STUDENT" // роль как строка
+        );
 
-        when(authService.getUserById(1L)).thenReturn(user);
-        assertThat(mvcTester.get().uri("/user/{userId}", user.getId())
+        when(authService.getUserById(1L)).thenReturn(userResponse);
+
+        assertThat(mvcTester.get().uri("/user/{userId}", 1)
                 .accept(MediaType.APPLICATION_JSON))
                 .hasStatus(HttpStatus.OK)
                 .hasContentType(MediaType.APPLICATION_JSON)
@@ -76,6 +79,7 @@ class AuthControllerTest {
                     jsonContent.assertThat().extractingPath("$.id").isEqualTo(1);
                     jsonContent.assertThat().extractingPath("$.username").isEqualTo("alice");
                     jsonContent.assertThat().extractingPath("$.email").isEqualTo("alice@example.com");
+                    jsonContent.assertThat().extractingPath("$.role").isEqualTo("STUDENT");
                 });
     }
 

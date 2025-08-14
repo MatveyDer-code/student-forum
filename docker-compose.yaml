@@ -28,6 +28,8 @@ services:
       - "8080:8080"
     depends_on:
       - auth-db
+    volumes:
+      - ./logs:/app/logs
 
 volumes:
   auth_data:

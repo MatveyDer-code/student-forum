@@ -3,6 +3,7 @@ package io.student.pet.security;
 import io.student.pet.repository.UserRepository;
 import io.student.pet.service.JwtProvider;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Profiles;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Slf4j
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
@@ -33,11 +35,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/login", "/register", "/refresh").permitAll();
 
-                    // Актуатор открыт только в dev
                     if (env.acceptsProfiles(Profiles.of("dev"))) {
                         auth.requestMatchers("/actuator/**").permitAll();
+                        log.info("Actuator endpoints are OPEN for profile 'dev'");
                     } else {
                         auth.requestMatchers("/actuator/**").hasRole("MODERATOR");
+                        log.info("Actuator endpoints require ROLE_MODERATOR for non-dev profiles");
                     }
 
                     auth.requestMatchers("/test/moderator/**").hasRole("MODERATOR");
