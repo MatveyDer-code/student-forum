@@ -2,8 +2,7 @@ package io.student.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Table(name = "user_profiles")
 @Entity
@@ -13,8 +12,8 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long userId;
+    @Column(name = "auth_user_id", nullable = false, unique = true)
+    private Long authUserId;
 
     @Column
     private String firstName;
@@ -23,5 +22,25 @@ public class UserProfile {
     private String lastName;
 
     @Column
-    private String groupName;
+    private String groupNumber;
+
+    @Column
+    private String phoneNumber;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
