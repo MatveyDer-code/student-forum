@@ -1,5 +1,6 @@
 package io.student.service;
 
+import io.student.dto.ProfileUpdateRequest;
 import io.student.dto.UserProfileResponse;
 import io.student.exception.UserNotFoundException;
 import io.student.model.UserProfile;
@@ -86,5 +87,38 @@ class UserProfileServiceTest {
         });
 
         verify(repository, times(1)).findByAuthUserId(missingAuthUserId);
+    }
+
+    @Test
+    void shouldUpdateAllFields() {
+        UserProfile profile = new UserProfile();
+        profile.setAuthUserId(1L);
+        when(repository.findByAuthUserId(1L)).thenReturn(Optional.of(profile));
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProfileUpdateRequest request = new ProfileUpdateRequest("Иван", "Иванов", "ИС-301", "+79990001122");
+        UserProfileResponse response = service.updateProfile(1L, request);
+
+        assertThat(response.firstName()).isEqualTo("Иван");
+        assertThat(response.lastName()).isEqualTo("Иванов");
+        assertThat(response.groupNumber()).isEqualTo("ИС-301");
+        assertThat(response.phoneNumber()).isEqualTo("+79990001122");
+    }
+
+    @Test
+    void shouldUpdatePartialFields() {
+        UserProfile profile = new UserProfile();
+        profile.setAuthUserId(1L);
+        profile.setFirstName("Old");
+        profile.setLastName("Name");
+        when(repository.findByAuthUserId(1L)).thenReturn(Optional.of(profile));
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProfileUpdateRequest request = new ProfileUpdateRequest("New", null, null, "+79990001122");
+        UserProfileResponse response = service.updateProfile(1L, request);
+
+        assertThat(response.firstName()).isEqualTo("New");
+        assertThat(response.lastName()).isEqualTo("Name");
+        assertThat(response.phoneNumber()).isEqualTo("+79990001122");
     }
 }

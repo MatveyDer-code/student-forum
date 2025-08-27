@@ -1,10 +1,8 @@
 package io.student.service;
 
-import io.student.dto.ProfileRequest;
+import io.student.dto.ProfileUpdateRequest;
 import io.student.dto.UserProfileResponse;
-import io.student.model.UserProfile;
 import io.student.repository.UserProfileRepository;
-import jakarta.annotation.sql.DataSourceDefinition;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,8 +36,9 @@ public class UserProfileServiceIT {
     @Autowired
     private UserProfileRepository profileRepository;
 
+    // Проверяет, что при создании профиля все дополнительные поля остаются пустыми.
     @Test
-    void shouldCreateAndRetrieveProfile() {
+    void shouldCreateEmptyProfileAndRetrieve() {
         Long authUserId = 42L;
 
         UserProfileResponse created = profileService.createProfile(authUserId);
@@ -53,5 +52,29 @@ public class UserProfileServiceIT {
         assertThat(fetched.lastName()).isNull();
         assertThat(fetched.groupNumber()).isNull();
         assertThat(fetched.phoneNumber()).isNull();
+    }
+
+    @Test
+    void shouldCreateUpdateAndGetProfile() {
+        long authUserId = System.currentTimeMillis() % Integer.MAX_VALUE;
+
+        UserProfileResponse created = profileService.createProfile(authUserId);
+
+        ProfileUpdateRequest update = new ProfileUpdateRequest(
+                "Иван", "Иванов", "ИС-301", "+79990001122"
+        );
+        UserProfileResponse updated = profileService.updateProfile(authUserId, update);
+
+        assertThat(updated.authUserId()).isEqualTo(authUserId);
+        assertThat(updated.firstName()).isEqualTo("Иван");
+        assertThat(updated.lastName()).isEqualTo("Иванов");
+        assertThat(updated.groupNumber()).isEqualTo("ИС-301");
+        assertThat(updated.phoneNumber()).isEqualTo("+79990001122");
+
+        UserProfileResponse fetched = profileService.getProfileByAuthUserId(authUserId);
+        assertThat(fetched.firstName()).isEqualTo("Иван");
+        assertThat(fetched.lastName()).isEqualTo("Иванов");
+        assertThat(fetched.groupNumber()).isEqualTo("ИС-301");
+        assertThat(fetched.phoneNumber()).isEqualTo("+79990001122");
     }
 }

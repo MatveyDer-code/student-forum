@@ -1,5 +1,6 @@
 package io.student.service;
 
+import io.student.dto.ProfileUpdateRequest;
 import io.student.dto.UserProfileResponse;
 import io.student.exception.UserNotFoundException;
 import io.student.model.UserProfile;
@@ -45,6 +46,28 @@ public class UserProfileService {
                 profile.getLastName(),
                 profile.getGroupNumber(),
                 profile.getPhoneNumber()
+        );
+    }
+
+
+    public UserProfileResponse updateProfile(long authUserId, ProfileUpdateRequest updateRequest) {
+        UserProfile profile = repository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new UserNotFoundException("Профиль с authUserId=" + authUserId + " не найден"));
+
+        if (updateRequest.firstName() != null) profile.setFirstName(updateRequest.firstName());
+        if (updateRequest.lastName() != null) profile.setLastName(updateRequest.lastName());
+        if (updateRequest.groupNumber() != null) profile.setGroupNumber(updateRequest.groupNumber());
+        if (updateRequest.phoneNumber() != null) profile.setPhoneNumber(updateRequest.phoneNumber());
+
+        UserProfile saved = repository.save(profile);
+
+        return new UserProfileResponse(
+                saved.getId(),
+                saved.getAuthUserId(),
+                saved.getFirstName(),
+                saved.getLastName(),
+                saved.getGroupNumber(),
+                saved.getPhoneNumber()
         );
     }
 }
