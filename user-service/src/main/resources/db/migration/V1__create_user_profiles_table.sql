@@ -1,8 +1,8 @@
 CREATE TABLE user_profiles (
     id BIGSERIAL PRIMARY KEY,
     auth_user_id BIGINT NOT NULL UNIQUE,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     group_number VARCHAR(50),
     phone_number VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

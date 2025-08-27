@@ -1,32 +1,24 @@
-package io.student.pet.service;
+package io.student.service;
 
-import io.student.pet.dto.UserRequest;
-import io.student.pet.dto.UserResponse;
-import io.student.pet.repository.RoleRepository;
-import io.student.pet.repository.UserRepository;
+import io.student.dto.ProfileRequest;
+import io.student.dto.UserProfileResponse;
+import io.student.model.UserProfile;
+import io.student.repository.UserProfileRepository;
+import jakarta.annotation.sql.DataSourceDefinition;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
 @SpringBootTest
-@TestPropertySource(properties = {
-        "jwt.secret=verySecretKeyForJwtGeneration1234567890",
-        "jwt.access-expiration=3600000",
-        "jwt.refresh-expiration=604800000"
-})
-class AuthServiceIT {
-
+@Testcontainers
+public class UserProfileServiceIT {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("testdb")
@@ -41,24 +33,25 @@ class AuthServiceIT {
     }
 
     @Autowired
-    private AuthService authService;
+    private UserProfileService profileService;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private UserProfileRepository profileRepository;
 
     @Test
-    void shouldRegisterUser() {
-        UserRequest request = new UserRequest(
-                "alice_" + UUID.randomUUID(),
-                "pass123",
-                "alice_" + UUID.randomUUID() + "@example.com",
-                "STUDENT"
-        );
-        UserResponse saved = authService.register(request);
-        assertThat(saved.id()).isNotNull();
-        assertThat(saved.role()).isEqualTo("STUDENT");
+    void shouldCreateAndRetrieveProfile() {
+        Long authUserId = 42L;
+
+        UserProfileResponse created = profileService.createProfile(authUserId);
+        assertThat(created).isNotNull();
+        assertThat(created.authUserId()).isEqualTo(authUserId);
+
+        UserProfileResponse fetched = profileService.getProfileByAuthUserId(authUserId);
+        assertThat(fetched).isNotNull();
+        assertThat(fetched.authUserId()).isEqualTo(authUserId);
+        assertThat(fetched.firstName()).isNull();
+        assertThat(fetched.lastName()).isNull();
+        assertThat(fetched.groupNumber()).isNull();
+        assertThat(fetched.phoneNumber()).isNull();
     }
 }

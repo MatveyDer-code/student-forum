@@ -1,5 +1,7 @@
 package io.student.service;
 
+import io.student.dto.UserProfileResponse;
+import io.student.exception.UserNotFoundException;
 import io.student.model.UserProfile;
 import io.student.repository.UserProfileRepository;
 import org.junit.jupiter.api.Test;
@@ -8,10 +10,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserProfileServiceTest {
@@ -23,15 +27,64 @@ class UserProfileServiceTest {
     private UserProfileService service;
 
     @Test
-    void shouldCreateProfileWithAuthUserIdOnly() {
+    void shouldCreateEmptyProfileFromProfileRequestAfterRegister() {
+        Long authId = 32L;
+
         UserProfile profile = new UserProfile();
-        profile.setAuthUserId(1L);
+        profile.setAuthUserId(authId);
+        profile.setFirstName(null);
+        profile.setLastName(null);
+        profile.setGroupNumber(null);
+        profile.setPhoneNumber(null);
 
         when(repository.save(any())).thenReturn(profile);
 
-        UserProfile result = service.createProfile(1L);
+        UserProfileResponse result = service.createProfile(authId);
 
-        assertEquals(1L, result.getAuthUserId());
+        assertEquals(profile.getAuthUserId(), result.authUserId());
+        assertNull(result.firstName());
+        assertNull(result.lastName());
+        assertNull(result.groupNumber());
+        assertNull(result.phoneNumber());
         verify(repository).save(any());
+    }
+
+    @Test
+    void shouldReturnProfileByAuthUserId() {
+        Long authUserId = 42L;
+
+        UserProfile profile = new UserProfile();
+        profile.setAuthUserId(authUserId);
+        profile.setFirstName("Иван");
+        profile.setLastName("Иванов");
+        profile.setGroupNumber("ИС-301");
+        profile.setPhoneNumber("+79990001122");
+
+        when(repository.findByAuthUserId(authUserId))
+                .thenReturn(Optional.of(profile));
+
+        UserProfileResponse response = service.getProfileByAuthUserId(authUserId);
+
+        assertThat(response).isNotNull();
+        assertThat(response.authUserId()).isEqualTo(authUserId);
+        assertThat(response.firstName()).isEqualTo("Иван");
+        assertThat(response.lastName()).isEqualTo("Иванов");
+        assertThat(response.groupNumber()).isEqualTo("ИС-301");
+        assertThat(response.phoneNumber()).isEqualTo("+79990001122");
+
+        verify(repository, times(1)).findByAuthUserId(authUserId);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenProfileNotFound() {
+        Long missingAuthUserId = 99L;
+
+        when(repository.findByAuthUserId(missingAuthUserId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> {
+            service.getProfileByAuthUserId(missingAuthUserId);
+        });
+
+        verify(repository, times(1)).findByAuthUserId(missingAuthUserId);
     }
 }
