@@ -37,3 +37,4 @@ out/
 .vscode/
 /.env
 /auth-service/logs/
+/kafka_data/

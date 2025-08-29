@@ -24,6 +24,9 @@ class UserProfileServiceTest {
     @Mock
     private UserProfileRepository repository;
 
+    @Mock
+    private UserDeletedProducer userDeletedProducer;
+
     @InjectMocks
     private UserProfileService service;
 
@@ -120,5 +123,28 @@ class UserProfileServiceTest {
         assertThat(response.firstName()).isEqualTo("New");
         assertThat(response.lastName()).isEqualTo("Name");
         assertThat(response.phoneNumber()).isEqualTo("+79990001122");
+    }
+
+    @Test
+    void shouldDeleteProfileWhenExists() {
+        long authUserId = 42L;
+        UserProfile profile = new UserProfile();
+        profile.setAuthUserId(authUserId);
+
+        when(repository.findByAuthUserId(authUserId)).thenReturn(Optional.of(profile));
+
+        service.deleteProfile(authUserId);
+
+        verify(repository, times(1)).delete(profile);
+        verify(userDeletedProducer, times(1)).sendUserDeletedEvent(authUserId);
+    }
+
+    @Test
+    void DeleteShouldThrowExceptionWhenProfileNotFound() {
+        long authUserId = 99L;
+        when(repository.findByAuthUserId(authUserId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> service.deleteProfile(authUserId));
+        verify(repository, never()).delete(any());
     }
 }

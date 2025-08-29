@@ -5,16 +5,15 @@ import io.student.dto.UserProfileResponse;
 import io.student.exception.UserNotFoundException;
 import io.student.model.UserProfile;
 import io.student.repository.UserProfileRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserProfileService {
 
     private final UserProfileRepository repository;
-
-    public UserProfileService(UserProfileRepository repository) {
-        this.repository = repository;
-    }
+    private final UserDeletedProducer userDeletedProducer;
 
     public UserProfileResponse createProfile(Long authUserId) {
         UserProfile profile = new UserProfile();
@@ -69,5 +68,13 @@ public class UserProfileService {
                 saved.getGroupNumber(),
                 saved.getPhoneNumber()
         );
+    }
+
+    public void deleteProfile(long authUserId) {
+        UserProfile profile = repository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new UserNotFoundException("Профиль с authUserId=" + authUserId + " не найден"));
+
+        repository.delete(profile);
+        userDeletedProducer.sendUserDeletedEvent(authUserId);
     }
 }

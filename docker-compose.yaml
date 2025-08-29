@@ -3,10 +3,10 @@ services:
     image: postgres:15
     container_name: pet-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}      # основной пользователь (например, postgres)
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"  # хост:контейнер
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d
@@ -48,6 +48,24 @@ services:
       - postgres-db
     volumes:
       - ./logs:/app/logs
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: kafka-broker
+    environment:
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-broker:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-broker:9092"
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG_DIRS: "/kafka/data"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./kafka_data:/kafka/data
 
 volumes:
   postgres_data:
+  kafka_data:
