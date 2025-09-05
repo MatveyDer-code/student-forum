@@ -13,6 +13,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,9 +32,9 @@ class UserProfileControllerTest {
         Long authUserId = 42L;
         UserProfileResponse response = new UserProfileResponse(authUserId, authUserId, "Ivan", "Ivanov", "IS-301", "+79990001122");
 
-        Mockito.when(profileService.getProfileByAuthUserId(authUserId)).thenReturn(response);
+        when(profileService.getProfileByAuthUserId(authUserId)).thenReturn(response);
 
-        mockMvc.perform(get("/profiles/{authUserId}", authUserId))
+        mockMvc.perform(get("/profile/{authUserId}", authUserId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.authUserId").value(authUserId))
                 .andExpect(jsonPath("$.firstName").value("Ivan"))
@@ -42,12 +44,11 @@ class UserProfileControllerTest {
     @Test
     void shouldUpdateProfile() throws Exception {
         Long authUserId = 42L;
-        ProfileUpdateRequest updateRequest = new ProfileUpdateRequest("Petr", null, null, null);
         UserProfileResponse updatedResponse = new UserProfileResponse(authUserId, authUserId, "Petr", "Ivanov", "IS-301", "+79990001122");
 
-        Mockito.when(profileService.updateProfile(eq(authUserId), updateRequest)).thenReturn(updatedResponse);
+        when(profileService.updateProfile(eq(authUserId), any(ProfileUpdateRequest.class))).thenReturn(updatedResponse);
 
-        mockMvc.perform(patch("/profiles/{authUserId}", authUserId)
+        mockMvc.perform(patch("/profile/{authUserId}", authUserId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"firstName\":\"Petr\"}"))
                 .andExpect(status().isOk())
@@ -60,17 +61,17 @@ class UserProfileControllerTest {
 
         Mockito.doNothing().when(profileService).deleteProfile(authUserId);
 
-        mockMvc.perform(delete("/profiles/{authUserId}", authUserId))
+        mockMvc.perform(delete("/profile/{authUserId}", authUserId))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void shouldReturnNotFoundForMissingProfile() throws Exception {
         Long authUserId = 99L;
-        Mockito.when(profileService.getProfileByAuthUserId(authUserId))
+        when(profileService.getProfileByAuthUserId(authUserId))
                 .thenThrow(new UserNotFoundException("Profile not found"));
 
-        mockMvc.perform(get("/profiles/{authUserId}", authUserId))
+        mockMvc.perform(get("/profile/{authUserId}", authUserId))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Profile not found"));
     }

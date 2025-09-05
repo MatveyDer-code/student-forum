@@ -1,6 +1,6 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.5.4"
+	id("org.springframework.boot") version "3.5.5"
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -23,6 +23,9 @@ repositories {
 	mavenCentral()
 }
 
+val apacheCommonsCompressVersion = "1.26.0"
+val apacheCommonsLangVersion = "3.18.0"
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-security")
@@ -31,6 +34,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.postgresql:postgresql")
+	implementation("org.apache.commons:commons-lang3:${apacheCommonsLangVersion}")
+	implementation("org.apache.commons:commons-compress:${apacheCommonsCompressVersion}")
 	implementation(libs.jjwt.api)
 	runtimeOnly(libs.jjwt.impl)
 	runtimeOnly(libs.jjwt.jackson)
