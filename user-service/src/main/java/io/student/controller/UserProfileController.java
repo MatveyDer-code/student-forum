@@ -3,6 +3,7 @@ package io.student.controller;
 import io.student.dto.ProfileUpdateRequest;
 import io.student.dto.UserProfileResponse;
 import io.student.service.UserProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class UserProfileController {
     @PatchMapping("/{authUserId}")
     public ResponseEntity<UserProfileResponse> updateProfile(
             @PathVariable Long authUserId,
-            @RequestBody ProfileUpdateRequest updateRequest
+            @Valid @RequestBody ProfileUpdateRequest updateRequest
     ) {
         return ResponseEntity.ok(profileService.updateProfile(authUserId, updateRequest));
     }
