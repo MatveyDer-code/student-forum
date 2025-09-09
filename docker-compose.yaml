@@ -27,6 +27,7 @@ services:
       - "8080:8080"
     depends_on:
       - postgres-db
+      - kafka
     volumes:
       - ./logs:/app/logs
 
@@ -46,6 +47,7 @@ services:
       - "8081:8080"
     depends_on:
       - postgres-db
+      - kafka
     volumes:
       - ./logs:/app/logs
   kafka:
@@ -61,6 +63,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_LOG_DIRS: "/kafka/data"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
       - "9092:9092"
     volumes:
