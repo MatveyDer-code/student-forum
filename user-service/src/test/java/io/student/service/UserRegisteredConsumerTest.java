@@ -45,7 +45,7 @@ class UserRegisteredConsumerTest {
     }
 
     @Autowired
-    private UserRegisteredConsumer consumer; // твой консьюмер
+    private UserRegisteredConsumer consumer;
 
     @Autowired
     private UserProfileRepository userProfileRepository;
@@ -55,7 +55,6 @@ class UserRegisteredConsumerTest {
         Long authUserId = 42L;
         consumer.handleUserRegistered(new UserRegisteredEvent(authUserId));
 
-        // Проверяем, что профиль создан
         assertThat(userProfileRepository.findByAuthUserId(authUserId)).isPresent();
     }
 }
